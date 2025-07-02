@@ -1,8 +1,18 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Leaf, Package, Users, TrendingUp, Shield, Globe } from 'lucide-react';
+import ProductRegistration from './ProductRegistration';
+import ProductList from './ProductList';
 
 const Dashboard = ({ isConnected, account }) => {
+  const productListRef = useRef();
+
+  const reloadProducts = () => {
+    if (productListRef.current && productListRef.current.loadProducts) {
+      productListRef.current.loadProducts();
+    }
+  };
+
   const stats = [
     {
       icon: <Package size={24} />,
@@ -153,6 +163,12 @@ const Dashboard = ({ isConnected, account }) => {
             <p>Hệ thống hoạt động trên toàn thế giới với công nghệ blockchain</p>
           </div>
         </div>
+      </div>
+
+      {/* Thêm phần đăng ký và danh sách sản phẩm */}
+      <div className="dashboard-products">
+        <ProductRegistration isConnected={isConnected} account={account} onRegisterSuccess={reloadProducts} />
+        <ProductList ref={productListRef} isConnected={isConnected} account={account} />
       </div>
     </div>
   );

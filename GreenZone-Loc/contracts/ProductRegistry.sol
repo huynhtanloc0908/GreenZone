@@ -100,7 +100,7 @@ contract ProductRegistry {
         string memory _action,
         string memory _location,
         string memory _details
-    ) public onlyAuthorized {
+    ) public {
         require(productExists[_productId], "Product does not exist");
         
         string memory stepId = string(abi.encodePacked(_productId, "-", uint2str(supplyChain[_productId].length)));

@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { Search, Filter, Eye, Edit, Trash2, Calendar, MapPin, User, Shield, Package } from 'lucide-react';
 import { ethers } from 'ethers';
 import contractAddress from '../contracts/contract-address.json';
 import ProductRegistryArtifact from '../contracts/ProductRegistry.json';
 
-const ProductList = ({ isConnected, account }) => {
+const ProductList = forwardRef(({ isConnected, account }, ref) => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -14,12 +14,6 @@ const ProductList = ({ isConnected, account }) => {
   const [buyMessage, setBuyMessage] = useState('');
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState('');
-
-  useEffect(() => {
-    if (isConnected) {
-      loadProducts();
-    }
-  }, [isConnected]);
 
   const loadProducts = async () => {
     setLoading(true);
@@ -66,6 +60,16 @@ const ProductList = ({ isConnected, account }) => {
     }
     setLoading(false);
   };
+
+  useImperativeHandle(ref, () => ({
+    loadProducts
+  }));
+
+  useEffect(() => {
+    if (isConnected) {
+      loadProducts();
+    }
+  }, [isConnected]);
 
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -348,6 +352,6 @@ const ProductList = ({ isConnected, account }) => {
       )}
     </div>
   );
-};
+});
 
 export default ProductList; 

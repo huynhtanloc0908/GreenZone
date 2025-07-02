@@ -4,7 +4,7 @@ import { ethers } from 'ethers';
 import contractAddress from '../contracts/contract-address.json';
 import ProductRegistryArtifact from '../contracts/ProductRegistry.json';
 
-const ProductRegistration = ({ isConnected, account }) => {
+const ProductRegistration = ({ isConnected, account, onRegisterSuccess }) => {
   const [formData, setFormData] = useState({
     productId: '',
     name: '',
@@ -95,6 +95,8 @@ const ProductRegistration = ({ isConnected, account }) => {
         certification: '',
         price: ''
       });
+      // Gọi callback reload danh sách sản phẩm nếu có
+      if (onRegisterSuccess) onRegisterSuccess();
 
     } catch (error) {
       console.error('Lỗi đăng ký sản phẩm:', error);
@@ -109,6 +111,76 @@ const ProductRegistration = ({ isConnected, account }) => {
       ...prev,
       productId: generateProductId()
     }));
+  };
+
+  // Hàm thêm sản phẩm mẫu
+  const handleAddSampleProducts = async () => {
+    if (!isConnected) {
+      setMessage('Vui lòng kết nối MetaMask trước!');
+      return;
+    }
+    setIsLoading(true);
+    setMessage('Đang thêm sản phẩm mẫu...');
+    try {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const contract = new ethers.Contract(
+        contractAddress.ProductRegistry,
+        ProductRegistryArtifact.abi,
+        signer
+      );
+      const samples = [
+        {
+          productId: generateProductId(),
+          name: 'Gạo ST25',
+          description: 'Gạo thơm ngon nhất thế giới',
+          location: 'Sóc Trăng',
+          harvestDate: Math.floor(Date.now() / 1000),
+          farmer: 'Nguyễn Văn A',
+          certification: 'VietGAP',
+          price: ethers.utils.parseEther('0.01')
+        },
+        {
+          productId: generateProductId(),
+          name: 'Xoài Cát Hòa Lộc',
+          description: 'Xoài ngọt, thơm, nổi tiếng miền Tây',
+          location: 'Tiền Giang',
+          harvestDate: Math.floor(Date.now() / 1000),
+          farmer: 'Trần Thị B',
+          certification: 'GlobalGAP',
+          price: ethers.utils.parseEther('0.02')
+        },
+        {
+          productId: generateProductId(),
+          name: 'Thanh Long Ruột Đỏ',
+          description: 'Thanh long ruột đỏ xuất khẩu',
+          location: 'Bình Thuận',
+          harvestDate: Math.floor(Date.now() / 1000),
+          farmer: 'Lê Văn C',
+          certification: 'VietGAP',
+          price: ethers.utils.parseEther('0.015')
+        }
+      ];
+      for (const sample of samples) {
+        const tx = await contract.registerProduct(
+          sample.productId,
+          sample.name,
+          sample.description,
+          sample.location,
+          sample.harvestDate,
+          sample.farmer,
+          sample.certification,
+          sample.price
+        );
+        await tx.wait();
+      }
+      setMessage('Đã thêm sản phẩm mẫu thành công!');
+      if (onRegisterSuccess) onRegisterSuccess();
+    } catch (error) {
+      setMessage('Có lỗi khi thêm sản phẩm mẫu: ' + (error?.reason || error?.message || ''));
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (!isConnected) {
@@ -301,6 +373,12 @@ const ProductRegistration = ({ isConnected, account }) => {
             </button>
           </div>
         </form>
+      </div>
+
+      <div style={{ marginBottom: 16 }}>
+        <button type="button" className="btn btn-secondary" onClick={handleAddSampleProducts} disabled={isLoading}>
+          Thêm sản phẩm mẫu để test
+        </button>
       </div>
 
       <div className="card">
